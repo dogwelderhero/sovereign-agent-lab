@@ -7,74 +7,52 @@ Fill this in after running exercise4_mcp_client.py.
 # ── Basic results ──────────────────────────────────────────────────────────
 
 # Tool names as shown in "Discovered N tools" output.
-TOOLS_DISCOVERED = []
+TOOLS_DISCOVERED = ["search_venues", "get_venue_details"]
 
-QUERY_1_VENUE_NAME    = "FILL_ME_IN"
-QUERY_1_VENUE_ADDRESS = "FILL_ME_IN"
-QUERY_2_FINAL_ANSWER  = "FILL_ME_IN"
+QUERY_1_VENUE_NAME    = "The Albanach"
+QUERY_1_VENUE_ADDRESS = "2 Hunter Square, Edinburgh"
+QUERY_2_FINAL_ANSWER  = "It seems there are no Edinburgh venues currently available that can accommodate 300 people *and* offer vegan options. Would you like me to:\n\n1. Search for venues with a lower minimum capacity (e.g., 250)?\n2. Look for non-vegan venues that can accommodate 300 people?\n3. Check for multiple smaller venues that could be combined?\n\nLet me know how you'd like to proceed!"
 
 # ── The experiment ─────────────────────────────────────────────────────────
 # Required: modify venue_server.py, rerun, revert.
 
-EX4_EXPERIMENT_DONE = None   # True or False
+EX4_EXPERIMENT_DONE = True   # True or False
 
 # What changed, and which files did or didn't need updating? Min 30 words.
 EX4_EXPERIMENT_RESULT = """
-FILL ME IN
+After changing The Albanach's status from available to full in
+sovereign_agent/tools/mcp_venue_server.py and rerunning the client, the agent's
+best match changed from The Albanach to The Haymarket Vaults. I did not need to
+change exercise4_mcp_client.py or the agent loop at all. Only the MCP server
+data changed, and the client automatically picked up the new result through the
+same discovered tools. After the test, I reverted the venue status back.
 """
 
 # ── MCP vs hardcoded ───────────────────────────────────────────────────────
 
-LINES_OF_TOOL_CODE_EX2 = 0   # count in exercise2_langgraph.py
-LINES_OF_TOOL_CODE_EX4 = 0   # count in exercise4_mcp_client.py
+LINES_OF_TOOL_CODE_EX2 = 4
+LINES_OF_TOOL_CODE_EX4 = 0
 
 # What does MCP buy you beyond "the tools are in a separate file"? Min 30 words.
 MCP_VALUE_PROPOSITION = """
-FILL ME IN
+MCP gives a stable interface between the agent and the tools. The client does
+not need hardcoded knowledge of venue logic or venue data. When the server-side
+data or implementation changes, the same agent can keep working without code
+changes in the client. It also makes reuse easier, because both LangGraph and
+Rasa can connect to the same MCP server instead of duplicating tool logic in
+two separate places.
 """
 
 # ── PyNanoClaw architecture — SPECULATION QUESTION ─────────────────────────
-#
-# (The variable below is still called WEEK_5_ARCHITECTURE because the
-# grader reads that exact name. Don't rename it — but read the updated
-# prompt: the question is now about PyNanoClaw, the hybrid system the
-# final assignment will have you build.)
-#
-# This is a forward-looking, speculative question. You have NOT yet seen
-# the material that covers the planner/executor split, memory, or the
-# handoff bridge in detail — that is what the final assignment (releases
-# 2026-04-18) is for. The point of asking it here is to check that you
-# have read PROGRESS.md and can imagine how the Week 1 pieces grow into
-# PyNanoClaw.
-#
-# Read PROGRESS.md in the repo root. Then write at least 5 bullet points
-# describing PyNanoClaw as you imagine it at final-assignment scale.
-#
-# Each bullet should:
-#   - Name a component (e.g. "Planner", "Memory store", "Handoff bridge",
-#     "Rasa MCP gateway")
-#   - Say in one clause what that component does and which half of
-#     PyNanoClaw it lives in (the autonomous loop, the structured agent,
-#     or the shared layer between them)
-#
-# You are not being graded on getting the "right" architecture — there
-# isn't one right answer. You are being graded on whether your description
-# is coherent and whether you have thought about which Week 1 file becomes
-# which PyNanoClaw component.
-#
-# Example of the level of detail we want:
-#   - The Planner is a strong-reasoning model (e.g. Nemotron-3-Super or
-#     Qwen3-Next-Thinking) that takes the raw task and produces an ordered
-#     list of subgoals. It lives upstream of the ReAct loop in the
-#     autonomous-loop half of PyNanoClaw, so the Executor never sees an
-#     ambiguous task.
 
 WEEK_5_ARCHITECTURE = """
-- FILL ME IN
-- FILL ME IN
-- FILL ME IN
-- FILL ME IN
-- FILL ME IN
+- The Planner is a stronger reasoning model that takes a raw user goal and turns it into ordered subgoals; it lives in the autonomous-loop half of PyNanoClaw.
+- The Executor is the LangGraph ReAct agent that carries out subgoals using tools and MCP-connected services; it lives in the autonomous-loop half.
+- The Memory store keeps task history, preferences, and reusable facts across steps and sessions; it lives in the shared layer between both halves.
+- The Handoff bridge routes tasks between the autonomous LangGraph side and the structured Rasa side when a conversational or voice workflow is better suited; it lives in the shared layer.
+- The Rasa structured agent handles guided conversational flows, slot-filling, and predictable voice interactions; it lives in the structured-agent half.
+- The MCP gateway exposes shared tools like venue search, venue details, and later file or web operations to both LangGraph and Rasa; it lives in the shared layer.
+- The Observability layer records traces, tool calls, errors, and cost usage so the system can be debugged and governed; it lives across both halves.
 """
 
 # ── The guiding question ───────────────────────────────────────────────────
@@ -82,5 +60,13 @@ WEEK_5_ARCHITECTURE = """
 # Must reference specific things you observed in your runs. Min 60 words.
 
 GUIDING_QUESTION_ANSWER = """
-FILL ME IN
+The LangGraph research-style agent feels right for open-ended discovery and
+tool-based reasoning. In Exercise 4 it searched venues, fetched details, and
+adapted to MCP-served data with minimal client logic. In Exercise 2 it also
+handled ambiguity and failure cases by trying tools, observing outputs, and
+changing course. A call-oriented agent should instead be the structured Rasa
+side, because live calls need predictable turns, explicit flows, and tighter
+control over what happens next. Swapping them feels wrong because the research
+agent is flexible but loose, while voice or call handling needs consistency,
+guardrails, and a clearer conversation structure.
 """

@@ -42,47 +42,87 @@ Conversation 3 (out of scope):
 # ── Conversation 1: Happy path ─────────────────────────────────────────────
 
 CONVERSATION_1_TRACE = """
-PASTE YOUR rasa shell TERMINAL OUTPUT HERE
+Your input ->  calling to confirm a booking
+How many guests are you confirming for tonight's event?
+Your input ->  160 guests
+And how many of those guests will need vegan meals?
+Your input ->  about 50 need vegan
+What deposit amount in GBP are you proposing to secure the booking?
+Your input ->  £200 deposit
+Thank you — booking confirmed. 160 guests, 50 requiring vegan meals, £200 deposit accepted. I'll send written confirmation to the organiser shortly.
+Is there anything else I can help you with?
 """
 
-CONVERSATION_1_OUTCOME = "FILL_ME_IN"   # "confirmed" or "escalated"
+CONVERSATION_1_OUTCOME = "confirmed"   # "confirmed" or "escalated"
 
 # ── Conversation 2: Deposit too high ───────────────────────────────────────
 
 CONVERSATION_2_TRACE = """
-PASTE YOUR rasa shell TERMINAL OUTPUT HERE
+Your input ->  calling to confirm a booking
+How many guests are you confirming for tonight's event?
+Your input ->  160 guests
+And how many of those guests will need vegan meals?
+Your input ->  about 50 need vegan
+
+At one point the LLM timed out and the bot said:
+Sorry, I am having trouble with that. Please try again in a few minutes.
+And how many of those guests will need vegan meals?
+
+Your input ->  about 50 need vegan
+What deposit amount in GBP are you proposing to secure the booking?
+Your input ->  £500 deposit
+I need to check one thing with the organiser before I can confirm. The issue is: a deposit of £500 exceeds the organiser's authorised limit of £300. Can I call you back within 15 minutes?
+Is there anything else I can help you with?
 """
 
-CONVERSATION_2_OUTCOME = "FILL_ME_IN"   # "confirmed" or "escalated"
-CONVERSATION_2_REASON  = "FILL_ME_IN"   # the reason the agent gave for escalating
+CONVERSATION_2_OUTCOME = "escalated"   # "confirmed" or "escalated"
+CONVERSATION_2_REASON  = "a deposit of £500 exceeds the organiser's authorised limit of £300"
 
 # ── Conversation 3: Out of scope ───────────────────────────────────────────
 
 CONVERSATION_3_TRACE = """
-PASTE YOUR rasa shell TERMINAL OUTPUT HERE
+Your input ->  calling to confirm a booking
+How many guests are you confirming for tonight's event?
+Your input ->  160 guests
+And how many of those guests will need vegan meals?
+Your input ->  can you arrange parking for the speakers?
+
+The system produced command-parsing warnings and then replied:
+I’m sorry I am unable to understand you, could you please rephrase?
+And how many of those guests will need vegan meals?
 """
 
 # Describe what CALM did after the out-of-scope message. Min 20 words.
 CONVERSATION_3_WHAT_HAPPENED = """
-FILL ME IN
+When I asked about parking in the middle of the booking flow, CALM did not
+cleanly switch to an out-of-scope flow. Instead it produced parsing warnings,
+asked me to rephrase, and then returned to the original vegan-count question.
 """
 
 # Compare Rasa CALM's handling of the out-of-scope request to what
 # LangGraph did in Exercise 2 Scenario 3. Min 40 words.
 OUT_OF_SCOPE_COMPARISON = """
-FILL ME IN
+In Exercise 2 Scenario 3, the LangGraph agent handled the out-of-scope train
+question more cleanly: it made no tool calls, admitted it could not answer, and
+responded with a sensible limitation-aware fallback. In my CALM run, the
+parking question inside the booking flow caused command-parsing issues and a
+rephrase request. LangGraph looked more graceful in open-ended refusal, while
+CALM stayed tied to the structured flow and recovered less elegantly.
 """
 
 # ── Task B: Cutoff guard ───────────────────────────────────────────────────
 
-TASK_B_DONE = None   # True or False
+TASK_B_DONE = True   # True or False
 
 # List every file you changed.
-TASK_B_FILES_CHANGED = []
+TASK_B_FILES_CHANGED = ["exercise3_rasa/actions/actions.py"]
 
 # How did you test that it works? Min 20 words.
 TASK_B_HOW_YOU_TESTED = """
-FILL ME IN
+I uncommented the cutoff-guard block in actions.py so the time-based check is
+active. Since my runs were late in the evening, the condition should evaluate
+to true after retraining and restarting the action server, causing bookings to
+escalate because it is past 16:45.
 """
 
 # ── CALM vs Old Rasa ───────────────────────────────────────────────────────
@@ -101,12 +141,14 @@ FILL ME IN
 # Min 30 words.
 
 CALM_VS_OLD_RASA = """
-FILL ME IN
-
-Think about:
-- What does the LLM handle now that Python handled before?
-- What does Python STILL handle, and why (hint: business rules)?
-- Is there anything you trusted more in the old approach?
+CALM gives a cleaner architecture because the LLM now handles language
+understanding and slot extraction from natural speech, so I do not need regex
+parsers or large intent and rule files just to understand phrases like “about
+50 need vegan.” Python still handles the deterministic business rules, which is
+exactly where deposit limits, capacity ceilings, and escalation logic belong.
+The tradeoff is that some behaviour is less transparent than the old rule-based
+approach, and when the LLM fails or times out the system can become messy in
+ways that are harder to predict.
 """
 
 # ── The setup cost ─────────────────────────────────────────────────────────
@@ -120,10 +162,13 @@ Think about:
 # Min 40 words.
 
 SETUP_COST_VALUE = """
-FILL ME IN
-
-Be specific. What can the Rasa CALM agent NOT do that LangGraph could?
-Is that a feature or a limitation for the confirmation use case?
-Think about: can the CALM agent improvise a response it wasn't trained on?
-Can it call a tool that wasn't defined in flows.yml?
+The extra setup buys a more controlled and production-shaped conversational
+environment. Rasa CALM gives explicit flows, slot-driven progression, and a
+clear place to insert deterministic custom actions, which is valuable for phone
+or confirmation workflows where consistency matters more than creativity.
+Compared with LangGraph, the CALM agent cannot broadly improvise, cannot use
+arbitrary tools unless they are defined in the flows and actions, and does not
+handle open-ended requests as flexibly. For booking confirmation, that is partly
+a feature because it reduces unwanted behaviour, even though it also makes the
+assistant feel less adaptable.
 """
